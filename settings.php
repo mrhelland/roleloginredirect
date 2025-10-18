@@ -8,21 +8,25 @@ if ($hassiteconfig) {
         get_string('settingsheading', 'local_roleloginredirect')
     );
 
+    // If no admin, then return
+    if (empty($ADMIN)) {
+        return;
+    }
+
     // Only load role list when rendering the full settings tree in the admin UI.
     if ($ADMIN->fulltree) {
         global $DB;
 
         // --- Build the list of all roles ---
+        $roles = $DB->get_records('role', null, 'sortorder ASC', 'id, shortname, name');
         $rolesmenu = [];
-        foreach ($DB->get_records('role', null, 'sortorder ASC') as $r) {
+        $roleids_by_shortname = [];
+        foreach ($roles as $r) {
             $label = trim($r->shortname . (!empty($r->name) ? " ({$r->name})" : ''));
             $rolesmenu[(int)$r->id] = $label;
+            $roleids_by_shortname[$r->shortname] = (int)$r->id;
         }
-
-        // --- Detect role shortnames dynamically ---
-        $roleids_by_shortname = $DB->get_records_menu('role', null, '', 'shortname, id');
-
-        
+   
         // --- Default redirect roles (if they exist)
         $default_redirect_roles = [];
         foreach (['parent', 'observer', 'professional'] as $shortname) {
@@ -70,11 +74,12 @@ if ($hassiteconfig) {
         // --- What role to give redirected users in the target course ---
         $studentroleid = $DB->get_field('role', 'id', ['shortname' => 'student']);
         $lowestroleid = $DB->get_field('role', 'id', ['shortname' => 'guest']);
+        $defaultenrollmentroleid = $studentroleid ?: ($lowestroleid ?: 0);
         $settings->add(new admin_setting_configselect(
             'local_roleloginredirect/enrolrole',
             get_string('enrolrole', 'local_roleloginredirect'),
             get_string('enrolrole_desc', 'local_roleloginredirect'),
-            ($studentroleid ?: $lowestroleid), // default to student role, or guest role if student is not found
+            $defaultenrollmentroleid, // default to student role, or guest role if student is not found
             $rolesmenu
         ));
     }
