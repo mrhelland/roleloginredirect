@@ -47,8 +47,8 @@ if ($hassiteconfig) {
         // --- Roles to redirect ---
         $settings->add(new admin_setting_configmultiselect(
             'local_roleloginredirect/roleids',
-            get_string('roleid', 'local_roleloginredirect'),
-            get_string('roleid_desc', 'local_roleloginredirect'),
+            get_string('redirectroleid', 'local_roleloginredirect'),
+            get_string('redirectroleid_desc', 'local_roleloginredirect'),
             $default_redirect_roles,
             $rolesmenu
         ));
