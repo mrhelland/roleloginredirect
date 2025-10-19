@@ -3,7 +3,6 @@ namespace local_roleloginredirect;
 
 defined('MOODLE_INTERNAL') || die();
 
-
 /**
  * Event observer for redirecting users after login based on their roles.
  *
@@ -27,7 +26,7 @@ class observer {
     public static function user_loggedin(\core\event\base $event): void {
         global $DB, $SESSION;
 
-        // --- Retrieve and validate plugin configuration.
+        // Retrieve and validate plugin configuration.
         $config = get_config('local_roleloginredirect');
         $courseid = isset($config->courseid) ? (int)$config->courseid : 0;
         if (empty($config->roleids) || $courseid <= 0) {
@@ -36,27 +35,27 @@ class observer {
 
         $userid = (int)$event->userid;
 
-        // --- Skip if user id is invalid
+        // Skip if user id is invalid
         if ($userid <= 0) {
             return;
         }
 
-        // --- Skip site administrators entirely.
+        // Skip site administrators entirely.
         if (is_siteadmin($userid)) {
             return;
         }
 
-        // --- Get all user roles using Moodle API (system context).
+        // Get all user roles using Moodle API (system context).
         $userroles = $DB->get_records('role_assignments', ['userid' => $userid], '', 'id, roleid');
 
         if (empty($userroles)) {
             return;
         }
 
-        // --- Build a quick lookup array of this user's role IDs.
+        // Build a quick lookup array of this user's role IDs.
         $userroleids = array_map(function($r) { return (int)$r->roleid; }, $userroles);
 
-        // --- Skip users with excluded roles.
+        // Skip users with excluded roles.
         if (!empty($config->excludedroleids)) {                                  
             $excludedroleids = array_filter(array_map('intval', explode(',', $config->excludedroleids))); 
             if (array_intersect($userroleids, $excludedroleids)) {              
@@ -64,13 +63,13 @@ class observer {
             }                                                                   
         }     
 
-        // --- Convert configured roles (from plugin settings) into an integer array.
+        // Convert configured roles (from plugin settings) into an integer array.
         $roleids = array_filter(array_map('intval', explode(',', $config->roleids)));
         if (empty($roleids)) {
             return;
         }
 
-        // --- Check if the user has ANY of the configured roles.
+        // Check if the user has ANY of the configured roles.
         list($in_sql, $params) = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED);
         $params['userid'] = $userid;
         $sql = "SELECT 1
@@ -81,13 +80,13 @@ class observer {
             return;
         }
 
-        // --- Validate that the target course exists and is visible.
+        // Validate that the target course exists and is visible.
         $course = $DB->get_record('course', ['id' => $courseid, 'visible' => 1], '*', IGNORE_MISSING);
         if (!$course) {
             return;
         }
 
-        // --- Auto-enrol user into the target course if not already enrolled.
+        // Auto-enrol user into the target course if not already enrolled.
         global $CFG;
         require_once($CFG->dirroot . '/enrol/manual/lib.php');
 
@@ -107,7 +106,7 @@ class observer {
         }
 
 
-        // --- Redirect user to the target course.
+        // Redirect user to the target course.
         $target = new \moodle_url('/course/view.php', ['id' => $course->id]);
         $SESSION->wantsurl = $target->out(false);
     }
