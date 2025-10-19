@@ -4,6 +4,7 @@ namespace local_roleloginredirect;
 defined('MOODLE_INTERNAL') || die();
 
 class observer {
+
     public static function user_loggedin(\core\event\base $event): void {
         global $DB, $SESSION;
 
@@ -14,6 +15,8 @@ class observer {
         }
 
         $userid = (int)$event->userid;
+
+        // Skip if user id is invalid
         if ($userid <= 0) {
             return;
         }
@@ -69,14 +72,13 @@ class observer {
         require_once($CFG->dirroot . '/enrol/manual/lib.php');
 
         $coursecontext = \context_course::instance($course->id);
-
         if (!is_enrolled($coursecontext, $userid)) {
             $enrol = enrol_get_plugin('manual');
             if ($enrol) {
                 $instances = enrol_get_instances($course->id, false);
                 foreach ($instances as $instance) {
                     if ($instance->enrol === 'manual') {
-                        $roleid = (int)($config->enrolrole ?? $DB->get_field('role', 'id', ['shortname' => 'student']) ?? 5);
+                        $roleid = (int)($config->enrolrole ?? $DB->get_field('role', 'id', ['shortname' => 'student']) ?? 0);
                         $enrol->enrol_user($instance, $userid, $roleid);
                         break;
                     }
