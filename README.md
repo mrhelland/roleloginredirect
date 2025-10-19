@@ -6,11 +6,11 @@
 
 The plugin is designed to:
 - Detect a user’s assigned roles across all contexts.
-- Exclude administrators, teachers, or any other roles you specify.
-- Automatically enroll eligible users in the target course (if not already enrolled).
-- Redirect them to that course upon login.
+- Redirect users in chosen roles to a target course.
+- Enroll these users automatically in the target course.
+- Exclude redirection for administrators or any other roles you specify.
 
-This plugin is intended to streamlines access to a **mentor dashboard** or **parent hub**.
+This plugin was original designed to streamlines access to a **mentor dashboard** or **parent hub** as these people often have limited experience with Moodle organization and navigation.
 
 Current Maturity: **BETA**
 
